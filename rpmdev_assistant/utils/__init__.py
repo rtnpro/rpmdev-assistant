@@ -6,6 +6,8 @@ import re
 
 
 def execute(cmd):
+    print 'Executing: %s' % cmd
+    print '=' * 80
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
     return out
@@ -58,6 +60,8 @@ def resolve_packages(package_names, disablerepos=[], enablerepos=[]):
     Returns:
         A set of resolved dependencies for the given package names.
     """
+    if not package_names:
+        return set()
     cmd = "repoquery --quiet"
     if disablerepos:
         cmd += " %s" % " ".join(
@@ -121,4 +125,19 @@ def get_missing_deps(
                 deps_graph[missing_dep] = []
         deps_graph[package] = list(missing_deps)
     return deps_graph
+
+
+def download_src_rpms(package_names):
+    print "Downloading Source RPMS"
+    execute(
+        'yumdownloader --source {package_names} '
+        '--destdir=~/rpmbuild/SRPMS/'.format(
+            package_names=' '.join(package_names))
+    )
+
+
+def extract_src_rpms():
+    print "Extracting source rpms"
+    execute(
+        'cd ~/rpmbuild/SRPMS; rpm -ivh *.src.rpm')
 
